@@ -1,6 +1,6 @@
 # bom installer
 
-[bom](https://github.com/uma0317/bom_installer "bom")のインストーラーです。
+[bom](https://github.com/uma0317/bom "bom")のインストーラーです。
 
 
 ### インストール方法
