@@ -3,7 +3,7 @@ use std::fs::{File};
 use std::path::Path;
 use std::env;
 use std::process::Command;
-
+use std::io::Write;
 fn main() {
     let root;
     let boiler_path;
@@ -11,6 +11,7 @@ fn main() {
     let exe_path;
     let ignore_path;
     let installer_bin_path;
+    let mut ignore_list = vec![".git", ".bomignore"];
     match env::home_dir() {
         Some(p) => {
             root = p.join(".bom");
@@ -40,7 +41,19 @@ fn main() {
             }
             if !ignore_exists{
                 match File::create(&ignore_path){
-                    Ok(_) => println!("create {:?}", ignore_path),
+                    Ok(mut file) => {
+                        for n in &ignore_list {
+                            match file.write_all(n.as_bytes()){
+                                Err(why) => println!("{:?}", why),
+                                Ok(_) => {}
+                            }
+                            match file.write_all(b"\n"){
+                                Err(why) => println!("{:?}", why),
+                                Ok(_) => {}
+                            }
+                        }
+                        println!("create {:?}", ignore_path);
+                    }
                     Err(err) => println!("{}", err)
                 };
             }
@@ -50,7 +63,9 @@ fn main() {
                 Ok(_) => {
                     println!("create {:?}", &root);
                     match File::create(&ignore_path){
-                        Ok(_) => println!("create .{:?}", ignore_path),
+                        Ok(_) => {
+                            println!("create .{:?}", ignore_path);
+                        }
                         Err(err) => println!("{}", err)
                     };
                 }
