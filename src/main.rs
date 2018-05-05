@@ -109,9 +109,10 @@ fn setEnv(bin_path: &Path) {
                 .spawn()                
                 .expect("failed to execute process")
     } else {
-        let mut arg = "echo export PATH=$PATH:".to_string();
+        let mut arg = "echo \'export PATH=\"$PATH:".to_string();
         arg.push_str(bin_path.to_str().unwrap());
-        arg.push_str(">> ~/.bash_profile");
+        arg.push_str("\"' >> ~/.bash_profile");
+        println!("{}", arg);
         Command::new("sh")
                 .arg("-c")
                 .arg(arg)
