@@ -66,7 +66,7 @@ fn main() {
         Ok(bin_dir) => {
             println!("already exists {:?}", &bin_path);
 
-            match fs::copy("bom.exe", &exe_path) {
+            match fs::copy("bin/bom.exe", &exe_path) {
                 Ok(_) => println!("create {:?}", &exe_path),
                 Err(err) => println!("{}", err)
             };
@@ -75,7 +75,7 @@ fn main() {
             match fs::create_dir(&bin_path) {
                 Ok(_) => {
                     println!("create {:?}", &bin_path);
-                    match fs::copy("bom.exe", &exe_path) {
+                    match fs::copy("bin/bom.exe", &exe_path) {
                         Ok(_) => println!("create {:?}", &exe_path),
                         Err(err) => println!("{}", err)
                     };
@@ -91,25 +91,24 @@ fn main() {
 }
 
 fn setEnv(bin_path: &Path) {
-    let mut arg = "setx /M path \"%path%;".to_string();
-    arg.push_str(bin_path.to_str().unwrap());
-    arg.push_str("\"");
-    println!("{:?}", arg);
-    let output = if cfg!(target_os = "windows") {
+
+    if cfg!(target_os = "windows") {
+        let mut arg = "setx /M path \"%path%;".to_string();
+        arg.push_str(bin_path.to_str().unwrap());
+        arg.push_str("\"");
+        println!("{:?}", arg);
         Command::new("cmd")
                 .arg("/C")
                 .arg(arg)
-                .output()
+                .spawn()                
                 .expect("failed to execute process")
     } else {
+        let mut arg = "export PATH=$PATH:".to_string();
+        arg.push_str(bin_path.to_str().unwrap());
         Command::new("sh")
                 .arg("-c")
-                .arg("$env:COMPLUS_MDA")
-                .env("HELLO", "hello, world")
-                .output()
+                .arg("export PATH=$PATH:~/path/bin/")
+                .spawn()
                 .expect("failed to execute process")
     };
-
-    let hello = output.stdout;
-    println!("{}", std::str::from_utf8(&hello).unwrap());
 }

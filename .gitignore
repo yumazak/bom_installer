@@ -1,5 +1,4 @@
 
 /target/
 **/*.rs.bk
-/bom.exe
-/bom_installer.exe
+/bin/
