@@ -1,6 +1,5 @@
 
 /target/
 **/*.rs.bk
-/bin/
 /bom_installer.zip
 /installer/
