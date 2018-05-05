@@ -10,13 +10,19 @@ fn main() {
     let bin_path;
     let exe_path;
     let ignore_path;
-
+    let installer_bin_path;
     match env::home_dir() {
         Some(p) => {
             root = p.join(".bom");
             boiler_path = root.join("boilerplates");            
-            bin_path = root.join("bin");     
-            exe_path = root.join("bin/bom.exe");     
+            bin_path = root.join("bin");   
+            if cfg!(target_os = "windows") {
+                exe_path = root.join("bin/bom.exe");
+                installer_bin_path = Path::new("bin/bom.exe");
+            } else {
+                exe_path = root.join("bin/bom");
+                installer_bin_path = Path::new("bin/bom");                
+            }     
             ignore_path = root.join(".bomignore");
         }
         None => panic!("Impossible to get your home dir!"),
@@ -27,13 +33,14 @@ fn main() {
             let mut ignore_exists = false;
             for file in dir {
                 if &file.unwrap().path().file_name().unwrap().to_str().unwrap().to_string() == ".bomignore" {
+                    println!("already exists {:?}", &ignore_path);
                     ignore_exists = true;
                     break;
                 }
             }
             if !ignore_exists{
                 match File::create(&ignore_path){
-                    Ok(_) => println!("create .{:?}", ignore_path),
+                    Ok(_) => println!("create {:?}", ignore_path),
                     Err(err) => println!("{}", err)
                 };
             }
@@ -63,10 +70,9 @@ fn main() {
     }
     
     match fs::read_dir(&bin_path) {
-        Ok(bin_dir) => {
+        Ok(dir) => {
             println!("already exists {:?}", &bin_path);
-
-            match fs::copy("bin/bom.exe", &exe_path) {
+            match fs::copy(&installer_bin_path, &exe_path) {
                 Ok(_) => println!("create {:?}", &exe_path),
                 Err(err) => println!("{}", err)
             };
@@ -75,7 +81,7 @@ fn main() {
             match fs::create_dir(&bin_path) {
                 Ok(_) => {
                     println!("create {:?}", &bin_path);
-                    match fs::copy("bin/bom.exe", &exe_path) {
+                    match fs::copy(&installer_bin_path, &exe_path) {
                         Ok(_) => println!("create {:?}", &exe_path),
                         Err(err) => println!("{}", err)
                     };
@@ -103,11 +109,12 @@ fn setEnv(bin_path: &Path) {
                 .spawn()                
                 .expect("failed to execute process")
     } else {
-        let mut arg = "export PATH=$PATH:".to_string();
+        let mut arg = "echo export PATH=$PATH:".to_string();
         arg.push_str(bin_path.to_str().unwrap());
+        arg.push_str(">> ~/.bash_profile");
         Command::new("sh")
                 .arg("-c")
-                .arg("export PATH=$PATH:~/path/bin/")
+                .arg(arg)
                 .spawn()
                 .expect("failed to execute process")
     };
